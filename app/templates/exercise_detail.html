@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Exercises Grouped{% endblock %}
+{% block content %}
+
+    <div class="exercise-detail">
+        <h1>{{ exercise.name }}</h1>
+        
+        <div class="info-section">
+            <h2>Equipment</h2>
+            <p>{{ exercise.equipment or 'Bodyweight' }}</p>
+        </div>
+        
+        <div class="muscles-section">
+            <h2>Primary Muscles Worked</h2>
+            {% if exercise.primary_muscles %}
+                <div class="muscle-tags">
+                {% for muscle in exercise.primary_muscles %}
+                    <span class="muscle-tag">{{ muscle.muscle }}</span>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p>No primary muscles specified</p>
+            {% endif %}
+
+            <h2>Secondary Muscles Worked</h2>
+            {% if exercise.secondary_muscles %}
+                <div class="muscle-tags">
+                {% for muscle in exercise.secondary_muscles %}
+                    <span class="muscle-tag">{{ muscle.muscle }}</span>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p>No secondary muscles</p>
+            {% endif %}
+        </div>
+        
+        <!-- If you have a description field -->
+        {% if exercise.description %}
+        <div class="description-section">
+            <h2>Description</h2>
+            <p>{{ exercise.description }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% endblock %}

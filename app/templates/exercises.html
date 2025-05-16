@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Exercises{% endblock %}
+{% block content %}
+
+    <h1>All Exercises</h1>
+    
+    <div class="exercise-grid">
+    {% for exercise in exercises %}
+    <div class="exercise-card">
+        <h3>{{ exercise.name }}</h3>
+        
+        <div class="exercise-details">
+            <span class="equipment">
+                <i class="icon-equipment"></i> {{ exercise.equipment or 'Bodyweight' }}
+            </span>
+        </div>
+        
+        <div class="muscles">
+            <h4>Target Muscles:</h4>
+            {% if exercise.primary_muscles %}
+                <ul class="muscle-list">
+                {% for muscle in exercise.primary_muscles %}
+                    <li>{{ muscle.muscle }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="no-muscles">No muscles specified</p>
+            {% endif %}
+        </div>
+        
+        <a href="{{ url_for('views.exercise_detail', id=exercise.id) }}" class="btn">View Details</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

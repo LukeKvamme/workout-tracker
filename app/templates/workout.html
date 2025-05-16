@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+{% block title %}Log Workout{% endblock %}
+{% block content %}
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 10px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1, h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .workout-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .workout-controls {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .timer-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 120px;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: #2196F3;
+        }
+        
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+        }
+        
+        .btn-warning:hover {
+            background: #e68900;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        
+        .workout-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .status-idle {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .status-active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status-paused {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .workout-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .filter-group {
+            margin-bottom: 10px;
+        }
+        
+        .muscle-checkbox {
+            margin-right: 15px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+        
+        .exercise-selector {
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .exercise-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .current-exercise {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .set-input-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .input-group input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .previous-sets {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fafafa;
+        }
+        
+        .set-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .set-info {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .set-number {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .muscle-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .muscle-tag {
+            background: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        
+        .muscle-tag.primary {
+            background: #bbdefb;
+        }
+        
+        .muscle-tag.secondary {
+            background: #c8e6c9;
+        }
+        
+        .no-sets {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+        
+        .workout-content {
+            display: none;
+        }
+        
+        .workout-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 36px;
+            }
+            
+            .set-input-form {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+
+    <div class="workout-container">
+        <h1>Workout Logger</h1>
+        
+        <!-- Workout Controls -->
+        <div class="workout-controls">
+            <div class="timer-display" id="workout-timer">00:00:00</div>
+            <div class="workout-status {% if workout_session %}status-{{ workout_session.status }}{% else %}status-idle{% endif %}" id="workout-status">
+                {% if workout_session %}
+                    {% if workout_session.status == 'active' %}Active{% elif workout_session.status == 'paused' %}Paused{% endif %}
+                {% else %}
+                    Not Started
+                {% endif %}
+            </div>
+            
+            <div class="control-buttons">
+                {% if not workout_session or workout_session.status == 'completed' %}
+                <button class="btn btn-primary" onclick="startWorkout()">Start Workout</button>
+                {% else %}
+                    {% if workout_session.status == 'active' %}
+                    <button class="btn btn-warning" onclick="pauseWorkout()">Pause</button>
+                    {% elif workout_session.status == 'paused' %}
+                    <button class="btn btn-primary" onclick="resumeWorkout()">Resume</button>
+                    {% endif %}
+                    <button class="btn btn-danger" onclick="restartWorkout()">Restart</button>
+                    <button class="btn" onclick="finishWorkout()">Finish</button>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if workout_session and workout_session.status in ['active', 'paused'] %}
+        <div class="workout-info">
+            <p><strong>Workout Started:</strong> {{ workout_session.date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+            <p><strong>Type:</strong> {{ workout_session.workout_type or 'General' }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Main Workout Content (hidden until workout starts) -->
+        <div class="workout-content {% if workout_session and workout_session.status in ['active', 'paused'] %}active{% endif %}">
+            
+            <!-- Exercise Filter Section -->
+            <div class="filter-section" style="display: block;">
+                <h3>Filter Exercises by Muscles</h3>
+                
+                <form onsubmit="return false" id="filter-form" method="get">
+                    <div class="filter-group">
+                        <h4>Primary Muscles</h4>
+                        <div class="muscle-filters">
+                            {% for muscle in all_primary_muscles %}
+                            <label class="muscle-checkbox">
+                                <input type="checkbox" name="primary_muscle" value="{{ muscle.id }}"
+                                    {% if muscle.id|string in selected_primary_muscles %}checked{% endif %}>
+                                {{ muscle.muscle }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h4>Secondary Muscles</h4>
+                        <div class="muscle-filters">
+                            {% for muscle in all_secondary_muscles %}
+                            <label class="muscle-checkbox">
+                                <input type="checkbox" name="secondary_muscle" value="{{ muscle.id }}"
+                                    {% if muscle.id|string in selected_secondary_muscles %}checked{% endif %}>
+                                {{ muscle.muscle }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Apply Filters</button>
+                </form>
+            </div>
+            
+            <!-- Exercise Selection -->
+            <div class="exercise-selector" style="display: block;">
+                <h3>Select Exercise</h3>
+                <form  onsubmit="return false" method="post" action="{{ url_for('views.select_exercise') }}">
+                    <select name="exercise_id" class="exercise-select" onchange="this.form.submit()">
+                        <option value="">-- Select an Exercise --</option>
+                        {% for exercise in filtered_exercises %}
+                        <option value="{{ exercise.id }}" 
+                            {% if current_exercise and current_exercise.id == exercise.id %}selected{% endif %}>
+                            {{ exercise.name }} 
+                            {% if exercise.equipment %}({{ exercise.equipment }}){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+            
+            <!-- Current Exercise Section -->
+            {% if current_exercise %}
+            <div class="current-exercise">
+                <h2>{{ current_exercise.name }}</h2>
+                
+                <!-- Display muscles worked -->
+                <div class="muscle-info">
+                    {% if current_exercise.primary_muscles %}
+                    <p>Primary: 
+                        {% for muscle in current_exercise.primary_muscles %}
+                        <span class="muscle-tag primary">{{ muscle.muscle }}</span>
+                        {% endfor %}
+                    </p>
+                    {% endif %}
+                    
+                    {% if current_exercise.secondary_muscles %}
+                    <p>Secondary: 
+                        {% for muscle in current_exercise.secondary_muscles %}
+                        <span class="muscle-tag secondary">{{ muscle.muscle }}</span>
+                        {% endfor %}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Set Input Form -->
+                <form  onsubmit="return false" method="post" action="{{ url_for('views.add_set') }}" class="set-form">
+                    <input type="hidden" name="exercise_id" value="{{ current_exercise.id }}">
+                    <input type="hidden" name="workout_id" value="{{ workout_session.id }}">
+                    
+                    <div class="set-input-form">
+                        <div class="input-group">
+                            <label for="weight">Weight (lbs)</label>
+                            <input type="number" id="weight" name="weight" step="0.5" required
+                                value="{{ last_set.weight if last_set else '' }}">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="reps">Reps</label>
+                            <input type="number" id="reps" name="reps" required
+                                value="{{ last_set.reps if last_set else '' }}">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="rest">Rest (sec)</label>
+                            <input type="number" id="rest" name="rest" value="90">
+                        </div>
+                        
+                    </div>
+
+                    <div class="input-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn">Add Set</button>
+                    </div>
+                </form>
+                
+                <!-- Previous Sets for Current Exercise -->
+                <br/>
+                <h2 align="center">Current Sets</h2>
+                <div class="previous-sets">
+                    {% if current_exercise_sets %}
+                        {% for set in current_exercise_sets %}
+                        <div class="set-item">
+                            <div class="set-info">
+                                <span class="set-number">Set {{ set.set_number }}</span>
+                                <span>{{ set.weight }} lbs x {{ set.reps }} reps</span>
+                                <span>{{ set.timestamp.strftime('%H:%M') }}</span>
+                            </div>
+                            <form method="post" action="{{ url_for('views.delete_set', set_id=set.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm" style="background: #f44336; padding: 5px 10px;">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-sets">No sets recorded for this exercise today</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- All Previous Sets (Scrollable) -->
+            <div style="margin-top: 30px;">
+                <h2>All Sets This Workout</h2>
+                <div class="previous-sets" style="max-height: 400px;">
+                    {% if all_workout_sets %}
+                        {% for entry in all_workout_sets %}
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #2196F3; margin-bottom: 10px;">
+                                {{ entry.exercise.name }}
+                            </h4>
+                            {% for set in entry.sets %}
+                            <div class="set-item">
+                                <div class="set-info">
+                                    <span class="set-number">Set {{ set.set_number }}</span>
+                                    <span>{{ set.weight }} lbs x {{ set.reps }} reps</span>
+                                    <span>{{ set.timestamp.strftime('%H:%M') }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-sets">No sets recorded in this workout yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let timerInterval;
+        let elapsedTime = 0;
+        let isPaused = false;
+        let workoutStartTime = null;
+        let pausedDuration = 0;
+        let pauseStartTime = null;
+        
+        {% if workout_session %}
+        workoutStartTime = new Date('{{ workout_session.date }}').getTime();
+        isPaused = {{ 'true' if workout_session.status == 'paused' else 'false' }};
+        {% if workout_session.paused_duration %}
+        pausedDuration = {{ workout_session.paused_duration * 1000 }};
+        {% endif %}
+        {% if workout_session.status == 'active' %}
+        startTimer();
+        {% endif %}
+        {% endif %}
+        
+        function updateTimer() {
+            let displayTime;
+            
+            if (isPaused) {
+                displayTime = elapsedTime;
+            } else {
+                let now = new Date().getTime();
+                displayTime = now - workoutStartTime - pausedDuration;
+            }
+            
+            let hours = Math.floor(displayTime / (1000 * 60 * 60));
+            let minutes = Math.floor((displayTime % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((displayTime % (1000 * 60)) / 1000);
+            
+            document.getElementById('workout-timer').textContent = 
+                String(hours).padStart(2, '0') + ':' + 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+        }
+        
+        function startTimer() {
+            if (!timerInterval) {
+                timerInterval = setInterval(updateTimer, 1000);
+                updateTimer();
+            }
+        }
+        
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        
+        function startWorkout() {
+            fetch('/workout/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+        }
+        
+        function pauseWorkout() {
+            fetch('/workout/pause', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        isPaused = true;
+                        pauseStartTime = new Date().getTime();
+                        elapsedTime = pauseStartTime - workoutStartTime - pausedDuration;
+                        stopTimer();
+                        document.getElementById('workout-status').textContent = 'Paused';
+                        document.getElementById('workout-status').className = 'workout-status status-paused';
+                        location.reload();
+                    }
+                });
+        }
+        
+        function resumeWorkout() {
+            fetch('/workout/resume', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+        }
+        
+        function restartWorkout() {
+            if (confirm('Are you sure you want to restart the workout? This will clear all sets.')) {
+                fetch('/workout/restart', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    });
+            }
+        }
+        
+        function finishWorkout() {
+            if (confirm('Are you sure you want to finish this workout?')) {
+                fetch('/workout/finish', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/workout/summary/' + data.workout_id;
+                        }
+                    });
+            }
+        }
+        
+        // Initialize timer if workout is active
+        if (workoutStartTime && !isPaused) {
+            startTimer();
+        }
+    </script>
+
+
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Exercises Grouped{% endblock %}
+{% block content %}
+
+
+<h1>Exercises for {{ muscle_name }}</h1>
+
+    {% if exercises %}
+        {% for exercise in exercises %}
+        <div class="exercise">
+            <h3>{{ exercise.name }}</h3>
+            <p>Equipment: {{ exercise.equipment or 'Bodyweight' }}</p>
+            <p>All muscles worked: 
+                {{ exercise.primary_muscles | map(attribute='muscle') | join(', ') }}
+            </p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No exercises found for {{ muscle_name }}</p>
+    {% endif %}
+
+    {% endblock %}

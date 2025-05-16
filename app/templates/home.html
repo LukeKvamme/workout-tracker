@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+{% block title %}Fitness Tracker - Home{% endblock %}
+{% block content %}
+
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --primary-dark: #1976D2;
+            --primary-light: #BBDEFB;
+            --secondary-color: #4CAF50;
+            --secondary-dark: #388E3C;
+            --accent-color: #FF9800;
+            --text-dark: #333;
+            --text-light: #FFF;
+            --text-muted: #757575;
+            --background-light: #F5F5F5;
+            --border-color: #E0E0E0;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--text-light);
+            padding: 1.5rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-title {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-accent {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-accent:hover {
+            background-color: #F57C00;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .page-title {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .workout-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+        
+        .workout-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .workout-header {
+            background: var(--primary-color);
+            color: var(--text-light);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .workout-date {
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        
+        .workout-type {
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        
+        .workout-content {
+            padding: 20px;
+        }
+        
+        .workout-stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: var(--background-light);
+            border-radius: 8px;
+            padding: 15px;
+            min-width: 120px;
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .workout-exercises {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .exercise-chip {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .exercise-count {
+            background: var(--primary-dark);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            margin-left: 6px;
+        }
+        
+        .workout-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .workout-time {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dashboard-card-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: var(--text-muted);
+        }
+        
+        .dashboard-card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .dashboard-card-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+        
+        .cta-banner {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 10px;
+            padding: 30px;
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .cta-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .cta-subtitle {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .view-all-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .view-all-link:hover {
+            color: var(--primary-dark);
+        }
+        
+        .view-all-link::after {
+            content: "→";
+            margin-left: 5px;
+            transition: var(--transition);
+        }
+        
+        .view-all-link:hover::after {
+            margin-left: 8px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state-text {
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .app-title {
+                margin-bottom: 15px;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .workout-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .workout-type {
+                margin-top: 5px;
+            }
+            
+            .workout-stats {
+                flex-direction: column;
+            }
+            
+            .workout-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+
+    <main class="container">
+        <!-- Dashboard Stats Overview -->
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <span class="dashboard-card-title">Workouts This Month</span>
+                <span class="dashboard-card-value">{{ stats.workouts_this_month }}</span>
+                <span class="dashboard-card-subtitle">Total workouts in {{ current_month }}</span>
+            </div>
+            <div class="dashboard-card">
+                <span class="dashboard-card-title">Total Weight Lifted</span>
+                <span class="dashboard-card-value">{{ stats.total_volume|int }} lbs</span>
+                <span class="dashboard-card-subtitle">All time volume</span>
+            </div>
+            <div class="dashboard-card">
+                <span class="dashboard-card-title">Workout Streak</span>
+                <span class="dashboard-card-value">{{ stats.workout_streak }}</span>
+                <span class="dashboard-card-subtitle">Consecutive days</span>
+            </div>
+        </div>
+        
+        <!-- Call to Action Banner -->
+        <div class="cta-banner">
+            <h2 class="cta-title">Ready for your next workout?</h2>
+            <p class="cta-subtitle">Track your progress and reach your fitness goals</p>
+            <a href="{{ url_for('views.workout') }}" class="btn btn-accent">Start Workout</a>
+        </div>
+        
+        <!-- Recent Workouts Section -->
+        <section class="section">
+            <div class="section-title">
+                <h2>Recent Workouts</h2>
+                <a href="{{ url_for('views.all_workouts') }}" class="view-all-link">View All</a>
+            </div>
+            
+            {% if recent_workouts %}
+                {% for workout in recent_workouts %}
+                <div class="workout-card">
+                    <div class="workout-header">
+                        <span class="workout-date">{{ workout.date.strftime('%A, %B %d') }}</span>
+                        <span class="workout-type">{{ workout.workout_type or 'General' }}</span>
+                    </div>
+                    <div class="workout-content">
+                        <div class="workout-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">{{ workout.stats.exercises }}</div>
+                                <div class="stat-label">Exercises</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ workout.stats.sets }}</div>
+                                <div class="stat-label">Sets</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ workout.duration_minutes }}</div>
+                                <div class="stat-label">Minutes</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ workout.stats.volume|int }}</div>
+                                <div class="stat-label">Volume (lbs)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="workout-exercises">
+                            {% for exercise in workout.exercises %}
+                            <span class="exercise-chip">
+                                {{ exercise.name }}
+                                <span class="exercise-count">{{ exercise.set_count }}</span>
+                            </span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="workout-footer">
+                            <span class="workout-time">{{ workout.date.strftime('%I:%M %p') }}</span>
+                            <a href="{{ url_for('views.workout_summary', workout_id=workout.id) }}" class="btn">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <h3 class="empty-state-title">No workouts yet</h3>
+                    <p class="empty-state-text">Start tracking your fitness journey today</p>
+                    <a href="{{ url_for('views.workout') }}" class="btn btn-primary">Log Your First Workout</a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+</html>
+
+
+
+{% endblock %}
