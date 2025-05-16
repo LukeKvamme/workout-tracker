@@ -1,0 +1,1 @@
+As the title says. This file allows me to at least have the app/database/ directory in github to display where the database will be.
