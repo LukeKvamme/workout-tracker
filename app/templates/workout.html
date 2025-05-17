@@ -357,7 +357,7 @@
             <!-- Exercise Selection -->
             <div class="exercise-selector" style="display: block;">
                 <h3>Select Exercise</h3>
-                <form id="exercise-form" method="post" action="{{ url_for('views.select_exercise') }}" action="#" onsubmit="processForm();return false"></form>
+                <form method="post" action="{{ url_for('views.select_exercise') }}">
                     <select name="exercise_id" class="exercise-select" onchange="this.form.submit()">
                         <option value="">-- Select an Exercise --</option>
                         {% for exercise in filtered_exercises %}
@@ -396,7 +396,7 @@
                 </div>
                 
                 <!-- Set Input Form -->
-                <form id="set-form" method="post" action="{{ url_for('views.add_set') }}" class="set-form" action="#" onsubmit="processForm();return false">
+                <form method="post" action="{{ url_for('views.add_set') }}" class="set-form">
                     <input type="hidden" name="exercise_id" value="{{ current_exercise.id }}">
                     <input type="hidden" name="workout_id" value="{{ workout_session.id }}">
                     
@@ -438,7 +438,7 @@
                                 <span>{{ set.weight }} lbs x {{ set.reps }} reps</span>
                                 <span>{{ set.timestamp.strftime('%H:%M') }}</span>
                             </div>
-                            <form id="prev-sets-form" method="post" action="{{ url_for('views.delete_set', set_id=set.id) }}" style="display: inline;" action="#" onsubmit="processForm();return false">
+                            <form method="post" action="{{ url_for('views.delete_set', set_id=set.id) }}" style="display: inline;">
                                 <button type="submit" class="btn btn-sm" style="background: #f44336; padding: 5px 10px;">
                                     Delete
                                 </button>

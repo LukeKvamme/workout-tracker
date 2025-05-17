@@ -1,6 +1,6 @@
 import calendar
 from flask_login import current_user, login_required
-from .models import Exercise, ExerciseSet, PrimaryMuscle, SecondaryMuscle, WorkoutEntry, WorkoutSession
+from .models import Exercise, ExerciseSet, PrimaryMuscle, SecondaryMuscle, WorkoutEntry, WorkoutSession, User
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
 from sqlalchemy.orm import joinedload
 from collections import defaultdict
@@ -37,7 +37,8 @@ def test_relationships():
 def home():
     # Get the last 3 completed workouts
     recent_workouts = WorkoutSession.query.filter_by(
-        status='completed'
+        status='completed',
+        user_id=current_user.id
     ).order_by(
         WorkoutSession.date.desc()
     ).limit(3).all()
@@ -78,6 +79,7 @@ def home():
     last_day = datetime(now.year, now.month, calendar.monthrange(now.year, now.month)[1])
     
     workouts_this_month = WorkoutSession.query.filter(
+        WorkoutSession.user_id == current_user.id,
         WorkoutSession.date >= first_day,
         WorkoutSession.date <= last_day,
         WorkoutSession.status == 'completed'
@@ -91,6 +93,8 @@ def home():
         WorkoutEntry, ExerciseSet.workout_entry_id == WorkoutEntry.id
     ).join(
         WorkoutSession, WorkoutEntry.session_id == WorkoutSession.id
+    ).join(
+        User, WorkoutSession.user_id == current_user.id
     ).filter(
         WorkoutSession.status == 'completed'
     ).scalar() or 0

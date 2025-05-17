@@ -16,7 +16,7 @@ def login():
         password = request.form.get('password')
 
         user = User.query.filter_by(username=username).first() # how to search the database for a specific thing, here looking for users w this email (should be 1 here since email must be unique in signup)
-        print(username, password, user.username, user.password)
+        
         if user:
             if check_password_hash(user.password, password):
                 flash('Logged in successfully!', category='success')
