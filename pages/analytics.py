@@ -1,4 +1,4 @@
-from dash import html, dcc, callback, Input, Output
+from dash import callback_context, html, dcc, callback, Input, Output
 import dash
 
 dash.register_page(__name__)
@@ -25,7 +25,10 @@ layout = html.Div([
     Input('analytics-input', 'value')
 )
 def update_city_selected(input_value):
-    if input_value in muscle_groups:
-        return f'You selected: {input_value}'
-    else:
-        return "Please select a muscle group"
+    triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+
+    if triggered_id == 'analytics-input':
+        if input_value in muscle_groups:
+            return f'You selected: {input_value}'
+        else:
+            return "Please select a muscle group"

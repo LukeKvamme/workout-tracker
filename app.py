@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 import dash
 from database import init_db
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True, suppress_callback_exceptions=True)
 init_db()
 
 app.layout = html.Div([
