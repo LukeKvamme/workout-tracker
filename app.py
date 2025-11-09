@@ -6,7 +6,7 @@ from database import init_db
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True, suppress_callback_exceptions=True)
 init_db()
 
-server = app.server() #gunicorn
+server = app.server #gunicorn
 
 app.layout = html.Div([
     html.H1('My Workout Tracker', className='p-1'),

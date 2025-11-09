@@ -1,0 +1,74 @@
+name: Deploy to AWS Lightsail
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run basic tests
+      run: |
+        python create_tables.py
+        echo "Tests passed"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to Lightsail
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.LIGHTSAIL_HOST }}
+        username: ${{ secrets.LIGHTSAIL_USER }}
+        key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+        port: 22
+        script: |
+          cd /home/deploy/workout-tracker
+          
+          # Backup database
+          if [ -f workout_tracker.db ]; then
+            cp workout_tracker.db workout_tracker.db.backup_$(date +%Y%m%d_%H%M%S)
+            echo "Database backed up"
+          fi
+          
+          # Pull latest code
+          git pull origin main
+          echo "Code updated"
+          
+          # Activate virtual environment
+          source venv/bin/activate
+          
+          # Update dependencies
+          pip install -r requirements.txt
+          echo "Dependencies updated"
+          
+          # Create tables if needed
+          python create_tables.py
+          
+          # Restart application
+          sudo systemctl restart workout-tracker
+          echo "Application restarted"
+          
+          # Check status
+          sleep 3
+          sudo systemctl status workout-tracker --no-pager
+          
+          echo "---Deployment complete---0"
