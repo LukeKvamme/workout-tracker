@@ -77,6 +77,6 @@ jobs:
           
           # Check status
           sleep 3
-          sudo systemctl status workout-tracker --no-pager
+          sudo -n systemctl status workout-tracker --no-pager
           
           echo "---Deployment complete---0"
