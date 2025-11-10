@@ -61,7 +61,7 @@ jobs:
           fi
           
           # Pull latest code
-          git pull origin main
+          git pull origin master
           echo "Code updated"
           
           # Activate virtual environment
@@ -71,10 +71,7 @@ jobs:
           pip install -r requirements.txt
           echo "Dependencies updated"
           
-          # Create tables if needed
-          python create_tables.py
-          
-          # Restart application
+          # Restart workout tracker
           sudo systemctl restart workout-tracker
           echo "Application restarted"
           
