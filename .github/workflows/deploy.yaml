@@ -22,9 +22,25 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+  debug-ssh:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Debug SSH Key Format
+      run: |
+        echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > /tmp/test_key
+        echo "Key file size: $(wc -c < /tmp/test_key) bytes"
+        echo "First line: $(head -n1 /tmp/test_key)"
+        echo "Last line: $(tail -n1 /tmp/test_key)"
+        echo "Total lines: $(wc -l < /tmp/test_key)"
+        
+        # Try to validate the key
+        chmod 600 /tmp/test_key
+        ssh-keygen -y -f /tmp/test_key || echo "Invalid key format"
 
   deploy:
-    needs: test
+    needs: debug-ssh
     runs-on: ubuntu-latest
     
     steps:
