@@ -52,7 +52,11 @@ jobs:
         key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
         port: 22
         script: |
-          cd /home/deploy/workout-tracker
+          #!/bin/bash
+          set -e
+          
+          cd /home/deploy/workout-tracker || exit 1
+          echo "Working Directory: $(pwd)"
           
           # Backup database
           if [ -f workout_tracker.db ]; then
@@ -72,11 +76,15 @@ jobs:
           echo "Dependencies updated"
           
           # Restart workout tracker
-          sudo systemctl restart workout-tracker
-          echo "Application restarted"
+          /usr/bin/sudo -n /bin/systemctl restart workout-tracker
+          if [ $? -q 0 ]; then
+            echo "Application restarted"
+          else
+            echo "Application failed to restart"
+          fi
           
           # Check status
           sleep 3
-          sudo -n systemctl status workout-tracker --no-pager
+          /usr/bin/sudo -n /bin/systemctl status workout-tracker --no-pager
           
           echo "---Deployment complete---0"
