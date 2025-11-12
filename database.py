@@ -1,88 +1,194 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Text, Float, DateTime, create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+import mysql.connector
+from mysql.connector import Error
 from datetime import datetime
+from mariadb_config import HOST, DATABASE, USER, PASSWORD
 
-"""
-    Create the engine, Session, Base at module-level instead of a Database class:
-        This is a small app for myself, so this is simple and works fine.
-    This will create three singletons:
-        Engine
-        Session
-        Base
-    Engine is a Singleton:
-        This creates one connection to the Database, which is then later used to bind the Session factory and create the tables within.
-    Session is actually a Singleton Factory:
-        Session has an __call__ method (I had never heard of this before now so I am documenting this for later lol)
-        This __call__ method returns a new Session everytime it is called, meaning that session = Session() in each page will actually return a new Session.
-        So this Session factory instantiates a new Session object whenever Session() is called (which calls the Factory's __call__ method)
-            More about __call__:
-                You can call a class by doing Class() OR Class.__call__().
-                THis is possible because not only are *functions* callable in Python, but so too are **Classes**.
-                Any object with __call__() is actuall 'callable'.
-                Weird.
-    Base is a Singleton because:
-        Base = declarative_base() creates a Singleton 'Base' object.
-        Then, when declaring all of the database tables as the 'class Set(Base):', all these model classes inherit from the SAME BASE.
-        Which then makes it so that Base.metadata holds the metadata for ALL of the tables, so Base.metadata.create_all(Engine) will
-            create ALL the tables that inherit from Base using that metadata and the connected Engine Singleton object.
-"""
-
-Engine = create_engine('sqlite:///workout_database.db') 
-
-Session = sessionmaker(bind=Engine) # Binds the singleton-factory Session to the singleton Engine
-
-Base = declarative_base()
+HOST = HOST
+DATABASE = DATABASE
+USER = USER
+PASSWORD = PASSWORD
 
 def init_db():
     """
-        Helper function to create all of the tables (if they do not all already exist, otherwise just connects), called when app first initializes.
+        Create the database if it does not exist yet.
+        Initialize the tables.
+        Wipe the log.
     """
-    Base.metadata.create_all(Engine)
+    create_db = """CREATE DATABASE IF NOT EXISTS workoutDB"""
+    create_exercises_table = """CREATE TABLE IF NOT EXISTS exercises (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        muscle_group VARCHAR(100),
+        equipment VARCHAR(100),
+        UNIQUE (name, muscle_group, equipment)
+        );"""
+    create_workouts_table = """CREATE TABLE IF NOT EXISTS workouts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        date DATE NOT NULL,
+        notes TEXT,
+        duration_minutes INT
+        );"""
+    create_sets_table = """CREATE TABLE IF NOT EXISTS sets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        workout_id INT NOT NULL,
+        exercise_id INT NOT NULL,
+        set_order INT NOT NULL,
+        reps INT NOT NULL,
+        weight DECIMAL(6,2),
+        rpe DECIMAL(3,1),
+        FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE,
+        FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE RESTRICT
+        );"""
+    with open("logfile.txt", "w") as logfile:
+        logfile.write(f"Initializing Database: {datetime.now().replace(microsecond=0)}\n")
 
-"""
-    OK, the database models are below. They inherit from the Base Singleton.
-        Exercise - Catalogue of the exercises
-        Workout - Workout is a workout session container for 1 workout, relation to the Sets via a FK in the Set table
-        Set - 1 Set within a workout. Two FK's - WorkoutID and ExerciseID
-    
-    The back_populate is weird and is apparently just for easier Python--it automatically joins the tables.
-        Related to MySQL, it is like automatically having a WHERE Sets.ExerciseID = Exercise.ExerciseID when joining tables.
-        Can also make it more concise by using just a 'backref' in 1 table, but the back_populates it weird enough.
-"""
+    execute_query(create_db)
+    execute_query(create_exercises_table)
+    execute_query(create_workouts_table)
+    execute_query(create_sets_table)
 
-class Exercise(Base):
-    __tablename__ = 'exercise'
+    with open("logfile.txt", "a") as logfile:
+        logfile.write("-" * 80)
+        logfile.write(f"\nTables Successfully Initialized\n")
+        logfile.write("-" * 80)
+        logfile.write("\nInitializing Muscle Groups\n")
     
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False, unique=True)
-    category = Column(String(50))
-    equipment = Column(String(50))
-    notes = Column(Text)
-    
-    sets = relationship('Set', back_populates='exercise')
 
-class Workout(Base):
-    __tablename__ = 'workout'
-    
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False, default=datetime.utcnow)
-    name = Column(String(100))
-    duration_minutes = Column(Integer)
-    notes = Column(Text)
-    
-    sets = relationship('Set', back_populates='workout', cascade='all, delete-orphan')
+    new_exercise(name="Bench Press", description="The Classic Bench Press", muscle_group="Chest", equipment="Barbell")
+    new_exercise(name="Lat Pulldown", description="The Classic Lat Pulldown", muscle_group="Back", equipment="Cable")
+    new_exercise(name="Bicep Curl", description="The Classic Bicep Curl", muscle_group="Biceps", equipment="Dumbbell")
+    new_exercise(name="Tricep Pulldown", description="The Classic Tricep Pulldown", muscle_group="Triceps", equipment="Cable")
+    new_exercise(name="Leg Press", description="The Classic Leg Press", muscle_group="Legs", equipment="Machine")
+    new_exercise(name="Military Press", description="The Classic Military Press", muscle_group="Shoulders", equipment="Smith Machine")
 
-class Set(Base):
-    __tablename__ = 'set'
+    with open("logfile.txt", "a") as logfile:
+        logfile.write("-" * 80)
+        logfile.write(f"\nMuscle Groups Successfully Initialized\n")
+
+    with open("logfile.txt", "a") as logfile:
+        logfile.write("=" * 80)
+        logfile.write(f"\nDatabase Successfully Initialized!\n")
+        logfile.write("=" * 80)
+
+def establish_mysqlDB_connection():
+    """
+        Creates the connection to the MySQL Database.
+
+        RETURNS
+        -------
+        connection
+            The database connection object, if it was able to establish a connection.
+            Check the mariadb_config.py data is correct or MariaDB server if it returns a NoneType.
+    """
+
+    connection = mysql.connector.connect(
+        host=HOST,
+        database=DATABASE,
+        user=USER,
+        password=PASSWORD
+    )
+    if connection.is_connected():
+        return connection
+    else:
+        with open("logfile.txt", 'a') as logfile:
+            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error occured when attempting to establish a connection to the MariaDB Server. Check mariadb_config file or status of MariaDB server.")
+            logfile.write("\n")
+            logfile.write("-" * 80)
+        return False
+
+def execute_query(query: str, input_params=None):
+    """
+        Execute a query on the database, uses the helper method above to connect to the DB.
+        One issue with this format is that is creates a connection EVERY query, not sure of a better way to structure this.
+        Could look into connection pooling later, but this app usage is usually:
+            > Open > Input Set > Close
+        
+        PARAMETERS
+        ----------
+        (query : str)
+            - The SQL query for the database, in str() format. Easiest way to format is using the triple " to turn it into a docstring and use that.
+        (input_params : Sequence[MySqlConvertibleType] || Dict[str:MySQLConvertibleType])
+            - This is for the parameters for during an INSERT operation. Not sure still exactly how this typing works, but hovering over .execute() displays this.
+            - My guess is mysql-connector object from an input list. Still working on this part.
+        
+        RETURNS
+        --------
+        The result of:  cursor.fetchall()
+            - This is a list of tuples from the executed SQL query. Looks like:
+                [
+                    (thing1, thing2, thing3),
+                    (thing4, thing5, thing6)
+                ]
+    """
+
+    connection = establish_mysqlDB_connection()
+
+    if connection is not False:
+        cursor = connection.cursor(dictionary=True, buffered=True)
+
+        try:
+            # check if we are querying first -- need to know whether to start a transaction or not
+            if query.split(" ")[0].strip() == "SELECT":
+                cursor.execute(query)
+                result = cursor.fetchall()
+                return result
+            else:
+                connection.start_transaction()
+                cursor.execute(query, params=input_params)
+                connection.commit()
+        
+        # if an error occurred, we want to log it and rollback
+        except Error as e:
+            with open("logfile.txt", "a") as logfile:
+                logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error executing SQL query: {query}\nError Returned:{e}")
+                logfile.write("\n")
+                logfile.write("-" * 80)
+            connection.rollback()
+        
+        # regardless of outcome, want to close the cursor and connection
+        finally:
+            cursor.close()
+            connection.close()
+
+    else:
+        with open("logfile.txt", "a") as logfile:
+                logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error Executing Query, Connection returned was of NoneType")
+                logfile.write("\n")
+                logfile.write("-" * 80)
+        return False
+
+def new_exercise(name: str, description: str, muscle_group: str, equipment: str) -> bool:
+    """
+    Execute a query on the database to create a new exercise listing within the `exercise` table.
     
-    id = Column(Integer, primary_key=True)
-    workout_id = Column(Integer, ForeignKey('workout.id'), nullable=False)
-    exercise_id = Column(Integer, ForeignKey('exercise.id'), nullable=False)
-    set_number = Column(Integer)
-    reps = Column(Integer)
-    weight = Column(Float)
-    rpe = Column(Integer)
-    notes = Column(String(200))
+    PARAMETERS
+    ----------
+    (name : str)
+        MANDATORY. The name of the exercise
+    (description : str)
+        OPTIONAL. Text type descriptor of the exercise. 
+    (muscle_group : str)
+        MANDATORY. The muscle group for the new exercise. Maybe add sub muscle groups later? (rear delt, front delt, etc.)
+    (equipment : str)
+        MANDATORY. What is the main equipment needed for this new exercise?
     
-    workout = relationship('Workout', back_populates='sets')
-    exercise = relationship('Exercise', back_populates='sets')
+    RETURNS
+    --------
+    Boolean. True if successfully executed the query, False if failed.
+    """
+    
+    new_exercise = """INSERT INTO `exercises` (name, description, muscle_group, equipment) VALUES (%s, %s, %s, %s)"""
+    input_parameters = (name, description, muscle_group, equipment)
+
+    error_status = execute_query(query=new_exercise, input_params=input_parameters)
+
+    if not error_status:
+        with open("logfile.txt", "a") as logfile:
+            logfile.write(f"\nSuccessfully inserted new exercise > {name} <\n")
+            logfile.write("-" * 80)
+        return True
+    else:
+        with open("logfile.txt", "a") as logfile:
+            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
+            logfile.write("-" * 80)

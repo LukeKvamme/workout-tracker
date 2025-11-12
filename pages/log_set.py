@@ -1,16 +1,13 @@
 from dash import Dash, html, dcc, Input, Output, State, callback, callback_context
 import dash
-from sqlalchemy.orm import Session
-from database import Session, Exercise, Set, Workout
+from database import execute_query
 
 dash.register_page(__name__)
 
-# Create a session
-session = Session()
 
-# Get exercises for dropdown
-exercises = session.query(Exercise).all()
-exercise_options = [{'label': ex.name, 'value': ex.id} for ex in exercises]
+# get exercises for dropdown
+exercise_options = execute_query("""SELECT * FROM `exercises`""")
+# exercise_options = [{'label': ex.name, 'value': ex.id} for ex in exercises]
 
 layout = html.Div([
     html.H2("Log Workout Set"),
