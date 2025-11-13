@@ -13,6 +13,7 @@ def init_db():
         Create the database if it does not exist yet.
         Initialize the tables.
         Wipe the log.
+        Initliazize the muscle groups by adding key exercises.
     """
     create_db = """CREATE DATABASE IF NOT EXISTS workoutDB"""
     create_exercises_table = """CREATE TABLE IF NOT EXISTS exercises (
@@ -186,6 +187,75 @@ def new_exercise(name: str, description: str, muscle_group: str, equipment: str)
     if not error_status:
         with open("logfile.txt", "a") as logfile:
             logfile.write(f"\nSuccessfully inserted new exercise > {name} <\n")
+            logfile.write("-" * 80)
+        return True
+    else:
+        with open("logfile.txt", "a") as logfile:
+            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
+            logfile.write("-" * 80)
+
+def new_workout(date) -> bool:
+    """
+    Execute a query on the database to create a new exercise listing within the `exercise` table.
+    
+    PARAMETERS
+    ----------
+    (name : str)
+        MANDATORY. The name of the exercise
+    (description : str)
+        OPTIONAL. Text type descriptor of the exercise. 
+    (muscle_group : str)
+        MANDATORY. The muscle group for the new exercise. Maybe add sub muscle groups later? (rear delt, front delt, etc.)
+    (equipment : str)
+        MANDATORY. What is the main equipment needed for this new exercise?
+    
+    RETURNS
+    --------
+    Boolean. True if successfully executed the query, False if failed.
+    """
+    
+    new_workout = """INSERT INTO `workouts` (date) VALUE (%s)"""
+    params = [date]
+    error_status = execute_query(query=new_workout, input_params=params)
+
+    if not error_status:
+        with open("logfile.txt", "a") as logfile:
+            logfile.write(f"\nNew Workout Started > {date} <\n")
+            logfile.write("-" * 80)
+        return True
+    else:
+        with open("logfile.txt", "a") as logfile:
+            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
+            logfile.write("-" * 80)
+
+def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weight: float, rpe: float=0) -> bool:
+    """
+    Execute a query on the database to create a new exercise listing within the `exercise` table.
+    
+    PARAMETERS
+    ----------
+    (name : str)
+        MANDATORY. The name of the exercise
+    (description : str)
+        OPTIONAL. Text type descriptor of the exercise. 
+    (muscle_group : str)
+        MANDATORY. The muscle group for the new exercise. Maybe add sub muscle groups later? (rear delt, front delt, etc.)
+    (equipment : str)
+        MANDATORY. What is the main equipment needed for this new exercise?
+    
+    RETURNS
+    --------
+    Boolean. True if successfully executed the query, False if failed.
+    """
+    
+    new_set = """INSERT INTO `sets` (workout_id, exercise_id, set_order, reps, weight, rpe) VALUES (%s, %s, %s, %s, %s, %s)"""
+    input_parameters = (workout_id, exercise_id, set_number, reps, weight, rpe)
+
+    error_status = execute_query(query=new_set, input_params=input_parameters)
+
+    if not error_status:
+        with open("logfile.txt", "a") as logfile:
+            logfile.write(f"\nSuccessfully inserted new set > {weight}lbs x {reps} <\n")
             logfile.write("-" * 80)
         return True
     else:

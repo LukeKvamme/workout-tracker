@@ -1,6 +1,5 @@
 workout_database.db
 *.db
-__pycache__/
 *.py[cod]
 .venv/
 .env
@@ -9,3 +8,4 @@ __pycache__/
 mariadb_config.py
 logfile.txt
 gunicorn_config.py
+__pycache__/
