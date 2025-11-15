@@ -15,6 +15,7 @@ for exercise in exercise_options:
     exercise_dict['value'] = exercise["id"]
     exercises_list.append(exercise_dict)
 
+sorted_exercises = sorted(exercises_list, key=lambda x: x['label'])
 
 layout = html.Div([
     html.H2(id='workout-output-message'),
@@ -23,7 +24,7 @@ layout = html.Div([
     
     dcc.Dropdown(
         id='exercise-dropdown',
-        options=exercises_list,
+        options=sorted_exercises,
         placeholder="Select Exercise"
     ),
     
@@ -70,7 +71,6 @@ def log_workout_set(n_clicks, exercise_id, weight, reps, set_number):
             return f"Set logged: {weight} lbs x {reps} reps"
         
         except Exception as e:
-
             return f"Error: {str(e)}"
 
     return ""

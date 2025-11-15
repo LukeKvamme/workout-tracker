@@ -31,7 +31,6 @@ def init_db():
         duration_minutes INT
         );"""
     create_sets_table = """CREATE TABLE IF NOT EXISTS sets (
-        id INT AUTO_INCREMENT PRIMARY KEY,
         workout_id INT NOT NULL,
         exercise_id INT NOT NULL,
         set_order INT NOT NULL,
@@ -39,7 +38,8 @@ def init_db():
         weight DECIMAL(6,2),
         rpe DECIMAL(3,1),
         FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE,
-        FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE RESTRICT
+        FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE RESTRICT,
+        PRIMARY KEY (workout_id, exercise_id, set_order)
         );"""
     with open("logfile.txt", "w") as logfile:
         logfile.write(f"Initializing Database: {datetime.now().replace(microsecond=0)}\n")
@@ -184,15 +184,13 @@ def new_exercise(name: str, description: str, muscle_group: str, equipment: str)
 
     error_status = execute_query(query=new_exercise, input_params=input_parameters)
 
-    if not error_status:
-        with open("logfile.txt", "a") as logfile:
-            logfile.write(f"\nSuccessfully inserted new exercise > {name} <\n")
-            logfile.write("-" * 80)
+    if error_status:
         return True
     else:
         with open("logfile.txt", "a") as logfile:
             logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
             logfile.write("-" * 80)
+        return False
 
 def new_workout(date) -> bool:
     """
@@ -200,14 +198,8 @@ def new_workout(date) -> bool:
     
     PARAMETERS
     ----------
-    (name : str)
-        MANDATORY. The name of the exercise
-    (description : str)
-        OPTIONAL. Text type descriptor of the exercise. 
-    (muscle_group : str)
-        MANDATORY. The muscle group for the new exercise. Maybe add sub muscle groups later? (rear delt, front delt, etc.)
-    (equipment : str)
-        MANDATORY. What is the main equipment needed for this new exercise?
+    (date : str)
+        MANDATORY. The date of the workout in 'YYYY-MM-DD' format.
     
     RETURNS
     --------
@@ -215,18 +207,16 @@ def new_workout(date) -> bool:
     """
     
     new_workout = """INSERT INTO `workouts` (date) VALUE (%s)"""
-    params = [date]
-    error_status = execute_query(query=new_workout, input_params=params)
+    input_parameters = [date]
+    error_status = execute_query(query=new_workout, input_params=input_parameters)
 
     if not error_status:
-        with open("logfile.txt", "a") as logfile:
-            logfile.write(f"\nNew Workout Started > {date} <\n")
-            logfile.write("-" * 80)
         return True
     else:
         with open("logfile.txt", "a") as logfile:
             logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
             logfile.write("-" * 80)
+        return False
 
 def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weight: float, rpe: float=0) -> bool:
     """
@@ -234,14 +224,20 @@ def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weigh
     
     PARAMETERS
     ----------
-    (name : str)
-        MANDATORY. The name of the exercise
-    (description : str)
-        OPTIONAL. Text type descriptor of the exercise. 
-    (muscle_group : str)
-        MANDATORY. The muscle group for the new exercise. Maybe add sub muscle groups later? (rear delt, front delt, etc.)
-    (equipment : str)
-        MANDATORY. What is the main equipment needed for this new exercise?
+    (workout_id : str)
+        MANDATORY. The workout ID foreign key from the `workouts` table. This links the set to a specific workout, used for grouping sets together.
+        ATM, a workout is just the current date, but could be expanded later to include more metadata (duration, notes, etc. [these two already exist in the table]).
+    (exercise_id : str)
+        MANDATORY. The exercise ID foreign key from the `exercises` table. This links the set to a specific exercise.
+    (set_number : str)
+        MANDATORY. The number / order of the set within the workout for that exercise.
+    (reps : str)
+        MANDATORY. The number of reps completed for this set.
+    (weight : str)
+        MANDATORY. The weight used for this set. FULL DECIMAL SUPPORTED for converting between KGS and LBS (e.g., 135.50).
+        Right now, no unit tracking, just assumes LBS for now. Also, instead of specifying drop sets or other advanced set types, just log them as separate sets.
+    (rpe : str)
+        OPTIONAL. The RPE (Rate of Perceived Exertion) for that set. Defaults to 0 because I usually do not log RPE.
     
     RETURNS
     --------
@@ -254,11 +250,9 @@ def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weigh
     error_status = execute_query(query=new_set, input_params=input_parameters)
 
     if not error_status:
-        with open("logfile.txt", "a") as logfile:
-            logfile.write(f"\nSuccessfully inserted new set > {weight}lbs x {reps} <\n")
-            logfile.write("-" * 80)
         return True
     else:
         with open("logfile.txt", "a") as logfile:
             logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
             logfile.write("-" * 80)
+        return False
