@@ -4,7 +4,6 @@ workout_database.db
 .venv/
 .env
 .DS_Store
-.github/
 mariadb_config.py
 logfile.txt
 gunicorn_config.py

@@ -7,6 +7,7 @@ HOST = os.getenv("HOST")
 DATABASE = os.getenv("DATABASE")
 USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
+print(HOST, DATABASE, USER, PASSWORD)
 
 def init_db():
     """
