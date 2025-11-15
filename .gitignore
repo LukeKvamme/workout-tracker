@@ -1,7 +1,10 @@
 workout_database.db
 *.db
-__pycache__/
 *.py[cod]
-venv/
+.venv/
 .env
 .DS_Store
+mariadb_config.py
+logfile.txt
+gunicorn_config.py
+__pycache__/

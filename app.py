@@ -3,10 +3,10 @@ import dash_bootstrap_components as dbc
 import dash
 from database import init_db
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True, suppress_callback_exceptions=True)
 init_db()
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True, suppress_callback_exceptions=True)
 
-server = app.server #gunicorn
+server = app.server # gunicorn thing, crazy this is all it needs
 
 app.layout = html.Div([
     html.H1('My Workout Tracker', className='p-1'),
