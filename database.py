@@ -1,12 +1,12 @@
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
-from mariadb_config import HOST, DATABASE, USER, PASSWORD
+import os
 
-HOST = HOST
-DATABASE = DATABASE
-USER = USER
-PASSWORD = PASSWORD
+HOST = os.getenv("HOST")
+DATABASE = os.getenv("DATABASE")
+USER = os.getenv("USER")
+PASSWORD = os.getenv("PASSWORD")
 
 def init_db():
     """
