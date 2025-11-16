@@ -3,7 +3,7 @@ import dash
 from datetime import datetime, date
 from database import execute_query, new_workout, new_set
 
-dash.register_page(__name__)
+dash.register_page(__name__, path='/log-set')
 
 
 # get exercises for dropdown
@@ -18,36 +18,80 @@ for exercise in exercise_options:
 sorted_exercises = sorted(exercises_list, key=lambda x: x['label'])
 
 layout = html.Div([
-    html.H2(id='workout-output-message'),
-    html.Button('Begin New Workout', id='workout-button', n_clicks=0),
-    html.H2("Log Workout Set"),
+    html.H1(f"{datetime.now().date()}",
+            style={
+                'textAlign': 'center', 
+                'marginBottom': '20px', 
+                'color': '#333', 
+                'font-family': 'Arial, sans-serif',
+                'font-weight': 'bold',
+                'borderBottom': '2px solid #000',
+                'paddingBottom': '10px'}
+    ),
     
     dcc.Dropdown(
         id='exercise-dropdown',
         options=sorted_exercises,
-        placeholder="Select Exercise"
+        placeholder="Select Exercise",
+        style={
+            'width': '100%', 
+            'marginBottom': '5px',
+            'padding': '8px',
+            'fontSize': '16px',
+            'align': 'center'
+            }
     ),
     
-    dcc.Input(id='weight-input', type='number', placeholder='Weight (lbs)'),
-    dcc.Input(id='reps-input', type='number', placeholder='Reps'),
-    dcc.Input(id='set-number-input', type='number', placeholder='Set Number'),
+    dcc.Input(
+        id='weight-input', 
+        type='number', 
+        placeholder='Weight (lbs)',
+        style={
+            'width': '97%', 
+            'marginBottom': '15px',
+            'padding': '8px',
+            'fontSize': '16px'
+            }
+    ),
+    dcc.Input(
+        id='reps-input', 
+        type='number', 
+        placeholder='Reps',
+        style={
+            'width': '97%', 
+            'marginBottom': '15px',
+            'padding': '8px',
+            'fontSize': '16px'
+            }
+    ),
+    dcc.Input(
+        id='set-number-input', 
+        type='number', 
+        placeholder='Set Number',
+        style={
+            'width': '97%', 
+            'marginBottom': '15px',
+            'padding': '8px',
+            'fontSize': '16px'
+            }
+    ),
     
-    html.Button('Log Set', id='submit-button', n_clicks=0),
+    html.Button('Log Set', 
+                id='submit-button',
+                style={
+                    'marginTop': '10px',
+                    'padding': '15px 100px',
+                    'fontSize': '16px',
+                    'backgroundColor': "#2510A0",
+                    'color': 'white',
+                    'border': 'none',
+                    'borderRadius': '10px',
+                    'cursor': 'pointer'
+                },
+                n_clicks=0),
+
     html.Div(id='set-output-message')
 ])
-
-@callback(
-    Output('workout-output-message', 'children'),
-    Input('workout-button', 'n_clicks'),
-    prevent_initial_call=True
-)
-def begin_workout(n_clicks):
-    triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
-    if triggered_id == 'workout-button':
-        today = date.today()
-        if execute_query(f"""SELECT date FROM `workouts` WHERE date = {today}"""):
-            new_workout(date=today)
-        return f"Today's Workout:\n{datetime.now().date()}"
 
 
 @callback(
@@ -66,9 +110,17 @@ def log_workout_set(n_clicks, exercise_id, weight, reps, set_number):
     
     if triggered_id == 'submit-button':
         try:
-            workout_id = execute_query(f"""SELECT id FROM `workouts` ORDER BY id DESC LIMIT 1""")
+            workout_id = execute_query(f"""SELECT id, date FROM `workouts` ORDER BY date DESC LIMIT 1""")
+            today = date.today()
+
+            if workout_id[0]["date"] != today:
+                new_workout(date=today)
+                workout_id = execute_query(f"""SELECT id, date FROM `workouts` ORDER BY date DESC LIMIT 1""")
+
             new_set(workout_id=workout_id[0]["id"], exercise_id=exercise_id, weight=weight, reps=reps, set_number=set_number)
-            return f"Set logged: {weight} lbs x {reps} reps"
+            
+            exercise_name = execute_query(f"""SELECT name FROM `exercises` WHERE id = {exercise_id}""")
+            return f"Set logged: {exercise_name[0]['name']} - {weight} lbs x {reps} reps. Weight just lifted: {weight * reps} lbs."
         
         except Exception as e:
             return f"Error: {str(e)}"

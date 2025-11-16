@@ -2,12 +2,13 @@ import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 HOST = os.getenv("HOST")
 DATABASE = os.getenv("DATABASE")
 USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
-print(HOST, DATABASE, USER, PASSWORD)
 
 def init_db():
     """
