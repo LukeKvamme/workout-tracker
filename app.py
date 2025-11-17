@@ -4,20 +4,6 @@ import dash
 from database import init_db
 
 init_db()
-# app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True, suppress_callback_exceptions=True)
-
-
-# app.layout = html.Div([
-#     html.H1('My Workout Tracker', className='p-1'),
-#     html.Div([
-#         html.Div(
-#             dcc.Link(f"{page['name']}", href=page['relative_path'])
-#         ) for page in dash.page_registry.values()
-#     ]),
-#     html.Div(dash.page_container)
-# ])
-
-
 app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True)
 server = app.server # gunicorn thing, crazy this is all it needs
 app.title = "Workout Tracker"
@@ -33,40 +19,9 @@ dcc_link_style = {
     'hover': {'backgroundColor': "#1F71B4"}
 }
 
-# nav_bar = html.Div(
-#     children = [
-#         html.Nav(
-#             children = [
-#                 dcc.Link(
-#                     "Home",
-#                     href="/",
-#                     id="link-home",
-#                     style=dcc_link_style
-#                 ),
-#                 dcc.Link(
-#                     "View Analytics",
-#                     href="/analytics",
-#                     style=dcc_link_style
-#                 ),
-#                 dcc.Link(
-#                     "Create New Exercise",
-#                     href="/create-new-exercise",
-#                     style=dcc_link_style
-#                 ),
-#                 dcc.Link(
-#                     "Log Workout Set",
-#                     href="/log-set",
-#                     style=dcc_link_style
-#                 )
-#             ]
-#         )
-#     ]
-# )
-
-
 app.layout = html.Div([
     html.Div([
-        dcc.Location(id='url'),  # to track the current path
+        dcc.Location(id='url'), # tracks current url/path, but rn not used (could be used with callback)
         html.Div([
                     html.Div(dcc.Link(
                         "Home",
@@ -118,34 +73,6 @@ app.layout = html.Div([
     }
     )
 ])
-
-# @app.callback(
-#     [Output("link-home", "style")],
-#     [Input("url", "pathname")]
-# )
-# def update_active_link(pathname):
-#     active_style = {
-#         "backgroundColor": "#003057",
-#         "color": "white",
-#         "borderRadius": "5px",
-#         "padding": "5px 20px",
-#         "textDecoration": "none"
-#     }
-#     default_style = {
-#         "color": "white",
-#         "padding": "5px 20px",
-#         "textDecoration": "none",
-#         "backgroundColor": "transparent"
-#     }
-#     print(pathname)
-
-#     link_home = active_style if pathname == "/" else default_style
-#     link_exercise = active_style if pathname.startswith("/create-new-exercise") else default_style
-#     link_set = active_style if pathname.startswith("/log-set") else default_style
-
-#     return link_home, link_exercise, link_set
-
-    # return link_home
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8050)

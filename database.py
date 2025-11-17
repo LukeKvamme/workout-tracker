@@ -82,7 +82,7 @@ def establish_mysqlDB_connection():
         -------
         connection
             The database connection object, if it was able to establish a connection.
-            Check the mariadb_config.py data is correct or MariaDB server if it returns a NoneType.
+            Check that the .env file data is correct or ping the MariaDB server if it returns a NoneType.
     """
 
     connection = mysql.connector.connect(
@@ -105,7 +105,7 @@ def execute_query(query: str, input_params=None):
         Execute a query on the database, uses the helper method above to connect to the DB.
         One issue with this format is that is creates a connection EVERY query, not sure of a better way to structure this.
         Could look into connection pooling later, but this app usage is usually:
-            > Open > Input Set > Close
+            > Open > Input Set > Close (also I am the only user, so very low traffic)
         
         PARAMETERS
         ----------
@@ -113,7 +113,7 @@ def execute_query(query: str, input_params=None):
             - The SQL query for the database, in str() format. Easiest way to format is using the triple " to turn it into a docstring and use that.
         (input_params : Sequence[MySqlConvertibleType] || Dict[str:MySQLConvertibleType])
             - This is for the parameters for during an INSERT operation. Not sure still exactly how this typing works, but hovering over .execute() displays this.
-            - My guess is mysql-connector object from an input list. Still working on this part.
+            - My guess is mysql-connector object from an input list. Still working on understanding this datatype, but it does work as intended.
         
         RETURNS
         --------
@@ -163,7 +163,7 @@ def execute_query(query: str, input_params=None):
 
 def new_exercise(name: str, description: str, muscle_group: str, equipment: str) -> bool:
     """
-    Execute a query on the database to create a new exercise listing within the `exercise` table.
+    Execute a query on the database to create a new exercise listing within the `exercises` table.
     
     PARAMETERS
     ----------
@@ -196,7 +196,8 @@ def new_exercise(name: str, description: str, muscle_group: str, equipment: str)
 
 def new_workout(date) -> bool:
     """
-    Execute a query on the database to create a new exercise listing within the `exercise` table.
+    Execute a query on the database to create a new workout within the `workouts` table.
+    Right now, this happens during logging a new set (no need to manually "start" a workout, happens automatically).
     
     PARAMETERS
     ----------
@@ -222,7 +223,7 @@ def new_workout(date) -> bool:
 
 def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weight: float, rpe: float=0) -> bool:
     """
-    Execute a query on the database to create a new exercise listing within the `exercise` table.
+    Execute a query on the database to create a new `set` record within the `sets` table.
     
     PARAMETERS
     ----------
