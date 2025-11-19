@@ -39,5 +39,7 @@ Current Grafana dashboard for viewing historical workout data (idea is to split 
 
 Also under development:
 - A way to refresh the database connection (easy to do with Javascript, but idea with Dash is to not need js) for create exercise > log set
+    - Maybe no need to manually input set number either -- query set.id with workout.date and exercise.id then increment
 - Displaying previous sets on /log-set page (not just the text after logging a new set, but a proper Div containing the stats of previous sets in current workout)
 - Maybe functionality to have multiple users (gf does not seem to care about logging her workouts in an app that is not Apple Notes)
+- RPE (low priority, not sure if I even ever want to use this but added it to schema just in case)

@@ -240,14 +240,14 @@ def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weigh
         MANDATORY. The weight used for this set. FULL DECIMAL SUPPORTED for converting between KGS and LBS (e.g., 135.50).
         Right now, no unit tracking, just assumes LBS for now. Also, instead of specifying drop sets or other advanced set types, just log them as separate sets.
     (rpe : str)
-        OPTIONAL. The RPE (Rate of Perceived Exertion) for that set. Defaults to 0 because I usually do not log RPE.
+        OPTIONAL. The RPE (Rate of Perceived Exertion) for that set. Defaults to 0 because I usually do not log RPE. Also have not added functionality to change this yet, this is very far down on my list of things to implement.
     
     RETURNS
     --------
     Boolean. True if successfully executed the query, False if failed.
     """
     
-    new_set = """INSERT INTO `sets` (workout_id, exercise_id, set_order, reps, weight, rpe) VALUES (%s, %s, %s, %s, %s, %s)"""
+    new_set = """INSERT INTO `sets` (workout_id, exercise_id, set_number, reps, weight, rpe) VALUES (%s, %s, %s, %s, %s, %s)"""
     input_parameters = (workout_id, exercise_id, set_number, reps, weight, rpe)
 
     error_status = execute_query(query=new_set, input_params=input_parameters)

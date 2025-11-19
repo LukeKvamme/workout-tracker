@@ -4,18 +4,20 @@ from database import execute_query, new_exercise
 
 dash.register_page(__name__, path='/create-new-exercise')
 
-# get muyscle groups for dropdown
+# get muscle groups for dropdown
 muscle_group_tuple = execute_query("""SELECT DISTINCT muscle_group FROM `exercises`;""")
 muscle_groups = []
 for muscle in muscle_group_tuple:
     muscle_groups.append(muscle["muscle_group"])
 
-# get equipments for dropdown
+# get equipment for dropdown
 equipment_tuple = execute_query("""SELECT DISTINCT equipment FROM `exercises`;""")
 equipment_list = []
 for equipment in equipment_tuple:
     equipment_list.append(equipment["equipment"])
 
+muscle_groups.sort()
+equipment_list.sort()
 
 layout = html.Div([
     html.H1("Create a New Exercise"),
