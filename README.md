@@ -26,20 +26,29 @@ Create New Exercise:
 
 ---
 
+## Analytics
+Right now, has an embedded Grafana dashboard within an iFrame showing in the /analytics page that looks like this:
+<img width="645" height="1310" alt="Image" src="https://github.com/user-attachments/assets/b75211ca-d5e2-46c7-8b6e-e45ca1fc1938" />
+
+This just displays historical stats on lifts right now, but in the future the plan is to add a dashboard for each muscle group, then there will be a muscle group radial button to select and view through the different dashboards.
+
+Each dashboard requires two different links due to different IP's to access Grafana on the server:
+- Local view
+- Tailscale view
+
+---
+
 ## Under Development
-There are currently two unused pages:
+There is currently one unused page:
 1. / (home page)
-2. /analytics
 
-The next steps are to create Grafana dashboards that are linked inside the /analytics page for viewing analytics within the app itself.
-Still unsure about what to display in the home page, but I am thinking to have the historical lift stats here (more granular in /analytics).
+Still unsure about what to display in the home page, but I am thinking to move the historical lift stats here (and then have the more granular views in /analytics).
 
-Current Grafana dashboard for viewing historical workout data (idea is to split into muscle groups and link within analytics page):
-<img width="800" height="865" alt="Image" src="https://github.com/user-attachments/assets/42af7e40-dc51-4765-916f-ebfc8f183134" />
-
-Also under development:
-- A way to refresh the database connection (easy to do with Javascript, but idea with Dash is to not need js) for create exercise > log set
-    - Maybe no need to manually input set number either -- query set.id with workout.date and exercise.id then increment
-- Displaying previous sets on /log-set page (not just the text after logging a new set, but a proper Div containing the stats of previous sets in current workout)
+---
+## Also under development:
+- Multiple grafana dashboards for more granular muscle_grouping view
+- Something more substantial with the Home page
+- Style the previous sets better than current display, maybe always display them as well (not just post-new log. think about closing and re-opening the app)
 - Maybe functionality to have multiple users (gf does not seem to care about logging her workouts in an app that is not Apple Notes)
-- RPE (low priority, not sure if I even ever want to use this but added it to schema just in case)
+- RPE input (low priority, not sure if I even ever want to use this but added it to schema just in case)
+- Depending on Dash.html.Video functionality, maybe hook up to local-tiktok...?
