@@ -8,3 +8,5 @@ mariadb_config.py
 logfile.txt
 gunicorn_config.py
 __pycache__/
+pages/__pycache__/analytics.cpython-312.pyc
+logfile.txt
