@@ -18,7 +18,7 @@ for exercise in exercise_options:
 # sort exercises alphabetically by the 'label' value (muscle_group is first so this sorts exercises by muscles > equipment > name)
 sorted_exercises = sorted(exercises_list, key=lambda x: x['label'])
 
-layout = html.Div([
+layout = html.Div([ html.Div([
     html.H1(f"{datetime.now().date()}",
             style={
                 'textAlign': 'center', 
@@ -78,8 +78,8 @@ layout = html.Div([
                     'borderRadius': '10px',
                     'cursor': 'pointer'
                 },
-                n_clicks=0),
-
+                n_clicks=0)
+    ]),
     html.Div(id='set-output-message')
 ])
 
@@ -100,25 +100,45 @@ def log_workout_set(n_clicks, exercise_id, weight, reps):
     
     if triggered_id == 'submit-button':
         try:
-            workout_id = execute_query(f"""SELECT id, date FROM `workouts` ORDER BY date DESC LIMIT 1""")
+            workout_id_tup = execute_query(f"""SELECT id, date FROM `workouts` ORDER BY date DESC LIMIT 1""")
             today = date.today()
 
-            if workout_id[0]["date"] != today:
+            # if date != today --> create a new entry in `workouts`, return the workout_id from the new workout
+            if workout_id_tup[0]["date"] != today:
                 new_workout(date=today)
-                workout_id = execute_query(f"""SELECT id, date FROM `workouts` ORDER BY date DESC LIMIT 1""")
+                workout_id_tup = execute_query(f"""SELECT id, date FROM `workouts` ORDER BY date DESC LIMIT 1""")
+            
+            # rather than copy-paste workout_id_tup[0]["id"] multiple times, just reassign it immediately
+            workout_id = workout_id_tup[0]["id"]
 
-            set_number_tuple = execute_query(f"""SELECT `sets`.set_number FROM `sets` WHERE `sets`.workout_id = {workout_id[0]["id"]} AND `sets`.exercise_id = {exercise_id}""")
+            # autodetect set_number: find set_number for current workout_id and exercise_id. If None/len(tuple)<1 --> beginning new set, so set_number = 1
+            set_number_tuple = execute_query(f"""SELECT `sets`.set_number FROM `sets` WHERE `sets`.workout_id = {workout_id} AND `sets`.exercise_id = {exercise_id}""")
             if set_number_tuple is None or len(set_number_tuple) < 1:
                 set_number = 1
             else:
                 set_number = int(set_number_tuple[-1]["set_number"]) + 1
             
-            new_set(workout_id=workout_id[0]["id"], exercise_id=exercise_id, weight=weight, reps=reps, set_number=set_number)
+            # now that we have  determined the workout_id and set_number --> actually log this new workout set
+            new_set(workout_id=workout_id, exercise_id=exercise_id, weight=weight, reps=reps, set_number=set_number)
             
-            exercise_name = execute_query(f"""SELECT name FROM `exercises` WHERE id = {exercise_id}""")
-            return f"Set #{set_number} logged: {exercise_name[0]['name']} - {weight} lbs x {reps} reps. Weight just lifted: {weight * reps} lbs."
-        
+
+            # OK, next is to formulate the Div elements for below the set-logging form. Will need the exercise names, set #'s, weight, reps
+            total_sets_tuple = execute_query(f"""SELECT e.name, s.set_number, s.weight, s.reps FROM sets s INNER JOIN exercises e ON s.exercise_id = e.id AND s.workout_id = {workout_id}""")
+            sets_div_elements = []
+
+            for index, value in enumerate(total_sets_tuple[::-1]):
+                sets_div_elements.append(
+                    html.Div(
+                        children=[
+                            html.Br(),
+                            html.H3(f"#{index}\t{value['name']}"),
+                            html.P(f"\tSet #{value['set_number']} - {value['weight']}x{value['reps']} for a total of {int(value['weight']) * int(value['reps'])} lbs.")
+                        ]
+                    )
+                )
+            
+            return sets_div_elements
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Error in the callback function when logging a new set: {str(e)}"
 
     return "This was not supposed to be returned, if you see this check the log_workout_set callback"
