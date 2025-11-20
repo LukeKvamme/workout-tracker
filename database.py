@@ -61,6 +61,7 @@ def init_db():
     new_exercise(name="Tricep Pulldown", description="The Classic Tricep Pulldown", muscle_group="Triceps", equipment="Cable")
     new_exercise(name="Leg Press", description="The Classic Leg Press", muscle_group="Legs", equipment="Machine")
     new_exercise(name="Military Press", description="The Classic Military Press", muscle_group="Shoulders", equipment="Smith Machine")
+    new_exercise(name="Crunch", description="The Classic Ab Crunch", muscle_group="Abdominals", equipment="Bodyweight")
 
 
     log("Muscle Groups Successfully Initialized")
