@@ -3,7 +3,7 @@
 ---
 
 ## Architecture Diagram
-<img width="721" height="782" alt="Image" src="https://github.com/user-attachments/assets/08d547c7-b762-4275-8a02-7833bbb739fb" />
+<img width="721" height="821" alt="Image" src="https://github.com/user-attachments/assets/9400a2d1-6836-4fba-aef7-9c6234c3977c" />
 
 ---
 
