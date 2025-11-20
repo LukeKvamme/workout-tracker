@@ -7,4 +7,4 @@ workout_database.db
 logfile.txt
 __pycache__/
 pages/__pycache__/
-
+.github/workflows/deploy.yaml
