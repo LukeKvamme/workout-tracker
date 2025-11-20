@@ -156,4 +156,4 @@ def log_workout_set(n_clicks, exercise_id, weight, reps):
         except Exception as e:
             return f"Error in the callback function when logging a new set: {str(e)}"
 
-    return "This was not supposed to be returned, if you see this check the log_workout_set callback"
+    return "How did we get here? << Check log set callback"

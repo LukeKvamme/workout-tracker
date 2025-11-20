@@ -99,5 +99,6 @@ def log_new_exercise(n_clicks, exercise_name, exercise_musclegroup, exercise_equ
         return "Please fill in all required fields."
     
     if triggered_id == 'exercise-button':
-        new_exercise(name=exercise_name, description=notes, muscle_group=exercise_musclegroup, equipment=exercise_equipment)
-    return f"New exercise added: {exercise_name}.\nMuscle Group: {exercise_musclegroup}.\nEquipment: {exercise_equipment}."
+        return new_exercise(name=exercise_name, description=notes, muscle_group=exercise_musclegroup, equipment=exercise_equipment)
+    
+    return "How did we get here? << check new exercise callback"

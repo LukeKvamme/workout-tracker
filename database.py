@@ -134,25 +134,32 @@ def execute_query(query: str, input_params=None):
         # if an error occurred, we want to log it and rollback
         except Error as e:
             current_time = datetime.now().replace(microsecond=0)
+            error_string = "default error string, if you see this then check the error log because an error happened but was not a normally-handled error"
 
             if str(e).startswith("1062 (23000): Duplicate entry"):
-                log(f"{current_time}\n\nDuplication Warning from Query:\n{query} with Input Parameters:\n{input_params}")
+                error_string = f"{current_time}\t\t\t{e}\n\nDuplication Warning from Query:\n{query} with Input Parameters:\n{input_params}"
+                log(error_string)
 
             elif query.startswith("INSERT INTO `exercises`"):
-                log(f"{current_time}\n\nError when attempting to INSERT INTO `exercises` table with input paramters:\n{input_params}")
+                error_string = f"{current_time}\t\t\t{e}\n\nError when attempting to INSERT INTO `exercises` table with input paramters:\n{input_params}"
+                log(error_string)
 
             elif query.startswith("INSERT INTO `sets`"):
-                log(f"{current_time}\n\nError when attempting to INSERT INTO `sets` table with input paramters:\n{input_params}")
+                error_string = f"{current_time}\t\t\t{e}\n\nError when attempting to INSERT INTO `sets` table with input paramters:\n{input_params}"
+                log(error_string)
 
             elif query.startswith("INSERT INTO `workouts`"):
-                log(f"{current_time}\n\nError when attempting to INSERT INTO `exercises` table with input paramters:\n{input_params}")
+                error_string = f"{current_time}\t\t\t{e}\n\nError when attempting to INSERT INTO `exercises` table with input paramters:\n{input_params}"
+                log(error_string)
 
             else:
-                log(f"{current_time}\n\nOther Error with Query: {query} and Input Parameters: {input_params}.\nError Returned: {e}")
+                error_string = f"{current_time}\t\t\t{e}\n\nOther Error with Query: {query} and Input Parameters: {input_params}.\nError Returned: {e}"
+                log(error_string)
         
             connection.rollback()
+            return error_string
         
-        # regardless of outcome, want to close the cursor and connection
+        # regardless of outcome, want to close the cursor and connection. Google says finally block runs even if you return within except block as well
         finally:
             cursor.close()
             connection.close()
@@ -160,11 +167,10 @@ def execute_query(query: str, input_params=None):
     else:
         current_time = datetime.now().replace(microsecond=0)
         log(f"{current_time} - Error Executing Query, Connection returned was of NoneType")
-        return False
 
 def new_exercise(name: str, description: str, muscle_group: str, equipment: str):
     """
-    Execute a query on the database to create a new exercise listing within the `exercises` table.
+    Execute a query on the database to create a new exercise listing within the `exercises` table. First, check if exercise is already in DB.
     
     PARAMETERS
     ----------
@@ -182,10 +188,14 @@ def new_exercise(name: str, description: str, muscle_group: str, equipment: str)
     Boolean. True if successfully executed the query, False if failed.
     """
     
-    new_exercise = """INSERT INTO `exercises` (name, description, muscle_group, equipment) VALUES (%s, %s, %s, %s)"""
-    input_parameters = (name, description, muscle_group, equipment)
-
-    execute_query(query=new_exercise, input_params=input_parameters)
+    duplicate_exercise = execute_query(f"SELECT `exercises`.name, `exercises`.muscle_group, `exercises`.equipment FROM `exercises` WHERE `exercises`.name = '{name}' AND `exercises`.muscle_group = '{muscle_group}' AND `exercises`.equipment = '{equipment}'")
+    if duplicate_exercise is not None and len(duplicate_exercise) > 0:
+        return "Exercise is already in the database."
+    else:
+        new_exercise = """INSERT INTO `exercises` (name, description, muscle_group, equipment) VALUES (%s, %s, %s, %s)"""
+        input_parameters = (name, description, muscle_group, equipment)
+        execute_query(query=new_exercise, input_params=input_parameters)
+        return f"New exercise added: {name}.\nMuscle Group: {muscle_group}.\nEquipment: {equipment}."
 
 def new_workout(date) -> bool:
     """
