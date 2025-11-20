@@ -3,32 +3,15 @@ import dash
 
 dash.register_page(__name__)
 
-muscle_groups = ['Chest', 'Back', 'Legs', 'Arms', 'Shoulders']
+grafana_dashboard_url = "http://192.168.1.111:3000/public-dashboards/8e29c895422d4bc1a0eff1accb92aec7"
 
-layout = html.Div([
-    html.H1('This is the Analytics page'),
-    html.Div([
-        "Select a muscle group:",
-        dcc.RadioItems(
-            options=muscle_groups,
-            value='musclegroup',
-            id='analytics-input'
+layout = html.Div(children=[
+    html.H1('Workout Stats'),
+    html.Iframe(
+        src=grafana_dashboard_url,
+        width="100%",
+        height="1450",
+        style={"border": "5px solid black"}
         )
-    ]),
-    html.Br(),
-    html.Div(id='analytics-output'),
-])
-
-
-@callback(
-    Output('analytics-output', 'children'),
-    Input('analytics-input', 'value')
+    ]
 )
-def update_city_selected(input_value):
-    triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
-
-    if triggered_id == 'analytics-input':
-        if input_value in muscle_groups:
-            return f'You selected: {input_value}'
-        else:
-            return "Please select a muscle group"
