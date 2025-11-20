@@ -1,22 +1,12 @@
 from dash import Dash, html, dcc, Input, Output, State, callback, callback_context
 import dash
 from datetime import datetime, date
-from database import execute_query, new_workout, new_set
+from database import execute_query, new_workout, new_set, establish_mysqlDB_connection
 
 dash.register_page(__name__, path='/log-set')
 
 
-# get exercises for dropdown. Dash needs {'label': 'abc', 'value': 'xyz'} formatting for dropdowns
-exercise_options = execute_query("""SELECT * FROM `exercises`""")
-exercises_list = []
-for exercise in exercise_options:
-    exercise_dict = {}
-    exercise_dict['label'] = f"{exercise["muscle_group"]} {exercise["equipment"]} {exercise["name"]}"
-    exercise_dict['value'] = exercise["id"]
-    exercises_list.append(exercise_dict)
 
-# sort exercises alphabetically by the 'label' value (muscle_group is first so this sorts exercises by muscles > equipment > name)
-sorted_exercises = sorted(exercises_list, key=lambda x: x['label'])
 
 def update_on_page_load():
     """
@@ -26,9 +16,25 @@ def update_on_page_load():
         If you create_new_exercise >> try to log a set for that new exercise, you would not
         see it in the dropdown for exercise selection because the new db info has not been populated.
         
-        This is a way to force Dash to load the page on every visit to the page, by returning the layout
+        This is a way to force Dash to load the page on every visit to the page, by establishing a new connection, re-querying the DB
+        for all the exercises, and then returning the layout.
         as a function.
     """
+    establish_mysqlDB_connection()
+
+    # get exercises for dropdown. Dash needs {'label': 'abc', 'value': 'xyz'} formatting for dropdowns
+    exercise_options = execute_query("""SELECT * FROM `exercises`""")
+    exercises_list = []
+    for exercise in exercise_options:
+        exercise_dict = {}
+        exercise_dict['label'] = f"{exercise["muscle_group"]} {exercise["equipment"]} {exercise["name"]}"
+        exercise_dict['value'] = exercise["id"]
+        exercises_list.append(exercise_dict)
+
+    # sort exercises alphabetically by the 'label' value (muscle_group is first so this sorts exercises by muscles > equipment > name)
+    sorted_exercises = sorted(exercises_list, key=lambda x: x['label'])
+
+
     layout = html.Div([ html.Div([
         html.H1(f"{datetime.now().date()}",
                 style={
