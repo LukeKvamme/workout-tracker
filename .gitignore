@@ -10,3 +10,5 @@ gunicorn_config.py
 __pycache__/
 pages/__pycache__/analytics.cpython-312.pyc
 logfile.txt
+pages/__pycache__/analytics.cpython-312.pyc
+__pycache__/database.cpython-312.pyc

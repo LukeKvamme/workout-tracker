@@ -18,70 +18,85 @@ for exercise in exercise_options:
 # sort exercises alphabetically by the 'label' value (muscle_group is first so this sorts exercises by muscles > equipment > name)
 sorted_exercises = sorted(exercises_list, key=lambda x: x['label'])
 
-layout = html.Div([ html.Div([
-    html.H1(f"{datetime.now().date()}",
-            style={
-                'textAlign': 'center', 
-                'marginBottom': '20px', 
-                'color': '#333', 
-                'font-family': 'Arial, sans-serif',
-                'font-weight': 'bold',
-                'borderBottom': '2px solid #000',
-                'paddingBottom': '10px'}
-    ),
-    
-    dcc.Dropdown(
-        id='exercise-dropdown',
-        options=sorted_exercises,
-        placeholder="Select Exercise",
-        style={
-            'width': '100%', 
-            'marginBottom': '5px',
-            'padding': '8px',
-            'fontSize': '16px',
-            'align': 'center'
-            }
-    ),
-    
-    dcc.Input(
-        id='weight-input', 
-        type='number', 
-        placeholder='Weight (lbs)',
-        style={
-            'width': '97%', 
-            'marginBottom': '15px',
-            'padding': '8px',
-            'fontSize': '16px'
-            }
-    ),
-    dcc.Input(
-        id='reps-input', 
-        type='number', 
-        placeholder='Reps',
-        style={
-            'width': '97%', 
-            'marginBottom': '15px',
-            'padding': '8px',
-            'fontSize': '16px'
-            }
-    ),
-    
-    html.Button('Log Set', 
-                id='submit-button',
+def update_on_page_load():
+    """
+        By default, Dash loads the layout on first page load and then stores in memory.
+        This means that you cannot refresh it with new information from the database.
+
+        If you create_new_exercise >> try to log a set for that new exercise, you would not
+        see it in the dropdown for exercise selection because the new db info has not been populated.
+        
+        This is a way to force Dash to load the page on every visit to the page, by returning the layout
+        as a function.
+    """
+    layout = html.Div([ html.Div([
+        html.H1(f"{datetime.now().date()}",
                 style={
-                    'marginTop': '10px',
-                    'padding': '15px 100px',
-                    'fontSize': '16px',
-                    'backgroundColor': "#2510A0",
-                    'color': 'white',
-                    'border': 'none',
-                    'borderRadius': '10px',
-                    'cursor': 'pointer'
-                },
-                n_clicks=0)
-    ]),
-    html.Div(id='set-output-message')
-])
+                    'textAlign': 'center', 
+                    'marginBottom': '20px', 
+                    'color': '#333', 
+                    'font-family': 'Arial, sans-serif',
+                    'font-weight': 'bold',
+                    'borderBottom': '2px solid #000',
+                    'paddingBottom': '10px'}
+        ),
+        
+        dcc.Dropdown(
+            id='exercise-dropdown',
+            options=sorted_exercises,
+            placeholder="Select Exercise",
+            style={
+                'width': '100%', 
+                'marginBottom': '5px',
+                'padding': '8px',
+                'fontSize': '16px',
+                'align': 'center'
+                }
+        ),
+        
+        dcc.Input(
+            id='weight-input', 
+            type='number', 
+            placeholder='Weight (lbs)',
+            style={
+                'width': '97%', 
+                'marginBottom': '15px',
+                'padding': '8px',
+                'fontSize': '16px'
+                }
+        ),
+        dcc.Input(
+            id='reps-input', 
+            type='number', 
+            placeholder='Reps',
+            style={
+                'width': '97%', 
+                'marginBottom': '15px',
+                'padding': '8px',
+                'fontSize': '16px'
+                }
+        ),
+        
+        html.Button('Log Set', 
+                    id='submit-button',
+                    style={
+                        'marginTop': '10px',
+                        'padding': '15px 100px',
+                        'fontSize': '16px',
+                        'backgroundColor': "#2510A0",
+                        'color': 'white',
+                        'border': 'none',
+                        'borderRadius': '10px',
+                        'cursor': 'pointer'
+                    },
+                    n_clicks=0)
+        ]),
+        html.Div(id='set-output-message')
+    ])
+
+    return layout
+
+layout = update_on_page_load
 
 
 @callback(

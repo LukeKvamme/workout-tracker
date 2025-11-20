@@ -43,20 +43,17 @@ def init_db():
         FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE RESTRICT,
         PRIMARY KEY (workout_id, exercise_id, set_order)
         );"""
-    with open("logfile.txt", "w") as logfile:
-        logfile.write(f"Initializing Database: {datetime.now().replace(microsecond=0)}\n")
+    
+    log(f"Initializing Database: {datetime.now().replace(microsecond=0)}", overwrite=True) # overwrite, begin new logfile
 
     execute_query(create_db)
     execute_query(create_exercises_table)
     execute_query(create_workouts_table)
     execute_query(create_sets_table)
 
-    with open("logfile.txt", "a") as logfile:
-        logfile.write("-" * 80)
-        logfile.write(f"\nTables Successfully Initialized\n")
-        logfile.write("-" * 80)
-        logfile.write("\nInitializing Muscle Groups\n")
+    log("Tables Successfully Initialized")
     
+    log("Initializing Muscle Groups Now...")
 
     new_exercise(name="Bench Press", description="The Classic Bench Press", muscle_group="Chest", equipment="Barbell")
     new_exercise(name="Lat Pulldown", description="The Classic Lat Pulldown", muscle_group="Back", equipment="Cable")
@@ -65,14 +62,10 @@ def init_db():
     new_exercise(name="Leg Press", description="The Classic Leg Press", muscle_group="Legs", equipment="Machine")
     new_exercise(name="Military Press", description="The Classic Military Press", muscle_group="Shoulders", equipment="Smith Machine")
 
-    with open("logfile.txt", "a") as logfile:
-        logfile.write("-" * 80)
-        logfile.write(f"\nMuscle Groups Successfully Initialized\n")
 
-    with open("logfile.txt", "a") as logfile:
-        logfile.write("=" * 80)
-        logfile.write(f"\nDatabase Successfully Initialized!\n")
-        logfile.write("=" * 80)
+    log("Muscle Groups Successfully Initialized")
+
+    log("------------------Database Successfully Initialized---------------------")
 
 def establish_mysqlDB_connection():
     """
@@ -94,10 +87,7 @@ def establish_mysqlDB_connection():
     if connection.is_connected():
         return connection
     else:
-        with open("logfile.txt", 'a') as logfile:
-            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error occured when attempting to establish a connection to the MariaDB Server. Check mariadb_config file or status of MariaDB server.")
-            logfile.write("\n")
-            logfile.write("-" * 80)
+        log(f"{datetime.now().replace(microsecond=0)} - Error occured when attempting to establish a connection to the MariaDB Server. Check mariadb_config file or status of MariaDB server.")
         return False
 
 def execute_query(query: str, input_params=None):
@@ -120,8 +110,8 @@ def execute_query(query: str, input_params=None):
         The result of:  cursor.fetchall()
             - This is a list of tuples from the executed SQL query. Looks like:
                 [
-                    (thing1, thing2, thing3),
-                    (thing4, thing5, thing6)
+                    {'name': 'bench press', 'muscle_group': 'chest'},
+                    {'name': 'lat pulldown', 'muscle_group': 'back'}
                 ]
     """
 
@@ -131,7 +121,7 @@ def execute_query(query: str, input_params=None):
         cursor = connection.cursor(dictionary=True, buffered=True)
 
         try:
-            # check if we are querying first -- need to know whether to start a transaction or not
+            # check if we are querying with SELECT first -- need to know whether to start a transaction or not
             if query.split(" ")[0].strip() == "SELECT":
                 cursor.execute(query)
                 result = cursor.fetchall()
@@ -143,10 +133,23 @@ def execute_query(query: str, input_params=None):
         
         # if an error occurred, we want to log it and rollback
         except Error as e:
-            with open("logfile.txt", "a") as logfile:
-                logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error executing SQL query: {query}\nError Returned:{e}")
-                logfile.write("\n")
-                logfile.write("-" * 80)
+            current_time = datetime.now().replace(microsecond=0)
+
+            if str(e).startswith("1062 (23000): Duplicate entry"):
+                log(f"{current_time}\n\nDuplication Warning from Query:\n{query} with Input Parameters:\n{input_params}")
+
+            elif query.startswith("INSERT INTO `exercises`"):
+                log(f"{current_time}\n\nError when attempting to INSERT INTO `exercises` table with input paramters:\n{input_params}")
+
+            elif query.startswith("INSERT INTO `sets`"):
+                log(f"{current_time}\n\nError when attempting to INSERT INTO `sets` table with input paramters:\n{input_params}")
+
+            elif query.startswith("INSERT INTO `workouts`"):
+                log(f"{current_time}\n\nError when attempting to INSERT INTO `exercises` table with input paramters:\n{input_params}")
+
+            else:
+                log(f"{current_time}\n\nOther Error with Query: {query} and Input Parameters: {input_params}.\nError Returned: {e}")
+        
             connection.rollback()
         
         # regardless of outcome, want to close the cursor and connection
@@ -155,13 +158,11 @@ def execute_query(query: str, input_params=None):
             connection.close()
 
     else:
-        with open("logfile.txt", "a") as logfile:
-                logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error Executing Query, Connection returned was of NoneType")
-                logfile.write("\n")
-                logfile.write("-" * 80)
+        current_time = datetime.now().replace(microsecond=0)
+        log(f"{current_time} - Error Executing Query, Connection returned was of NoneType")
         return False
 
-def new_exercise(name: str, description: str, muscle_group: str, equipment: str) -> bool:
+def new_exercise(name: str, description: str, muscle_group: str, equipment: str):
     """
     Execute a query on the database to create a new exercise listing within the `exercises` table.
     
@@ -184,15 +185,7 @@ def new_exercise(name: str, description: str, muscle_group: str, equipment: str)
     new_exercise = """INSERT INTO `exercises` (name, description, muscle_group, equipment) VALUES (%s, %s, %s, %s)"""
     input_parameters = (name, description, muscle_group, equipment)
 
-    error_status = execute_query(query=new_exercise, input_params=input_parameters)
-
-    if error_status:
-        return True
-    else:
-        with open("logfile.txt", "a") as logfile:
-            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
-            logfile.write("-" * 80)
-        return False
+    execute_query(query=new_exercise, input_params=input_parameters)
 
 def new_workout(date) -> bool:
     """
@@ -211,17 +204,9 @@ def new_workout(date) -> bool:
     
     new_workout = """INSERT INTO `workouts` (date) VALUE (%s)"""
     input_parameters = [date]
-    error_status = execute_query(query=new_workout, input_params=input_parameters)
+    execute_query(query=new_workout, input_params=input_parameters)
 
-    if not error_status:
-        return True
-    else:
-        with open("logfile.txt", "a") as logfile:
-            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
-            logfile.write("-" * 80)
-        return False
-
-def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weight: float, rpe: float=0) -> bool:
+def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weight: float, rpe: float=0):
     """
     Execute a query on the database to create a new `set` record within the `sets` table.
     
@@ -250,12 +235,30 @@ def new_set(workout_id: int, exercise_id: int, set_number: int, reps: int, weigh
     new_set = """INSERT INTO `sets` (workout_id, exercise_id, set_number, reps, weight, rpe) VALUES (%s, %s, %s, %s, %s, %s)"""
     input_parameters = (workout_id, exercise_id, set_number, reps, weight, rpe)
 
-    error_status = execute_query(query=new_set, input_params=input_parameters)
+    execute_query(query=new_set, input_params=input_parameters)
 
-    if not error_status:
-        return True
+def log(log_entry: str, overwrite: bool=False):
+    """
+        Making this to help with the amount of logging I added, too much copy paste so this will just handle the logging.
+
+        PARAMETERS
+        -----------
+        (log_entry : str)
+            The string to output into the log file.
+        (overwrite: bool)
+            Boolean for whether to overwrite the logfile instead of appending (default=appending)
+    """
+    if overwrite:
+        with open("logfile.txt", "w") as logfile:
+            logfile.write("-" * 100)
+            logfile.write("\n")
+            logfile.write(f"{log_entry}")
+            logfile.write("\n")
+            logfile.write("-" * 100)
     else:
         with open("logfile.txt", "a") as logfile:
-            logfile.write(f"\n{datetime.now().replace(microsecond=0)} - Error when attempting to INSERT INTO `exercises` table with input paramters: {input_parameters}")
-            logfile.write("-" * 80)
-        return False
+                logfile.write("-" * 100)
+                logfile.write("\n")
+                logfile.write(f"{log_entry}")
+                logfile.write("\n")
+                logfile.write("-" * 100)
