@@ -4,8 +4,8 @@ import dash
 
 dash.register_page(__name__)
 
-local_grafana_dashboard_url = "http://192.168.1.111:3000/public-dashboards/8e29c895422d4bc1a0eff1accb92aec7"
-tailscale_grafana_dashboard_url = "http://100.100.143.61:3000/public-dashboards/8e29c895422d4bc1a0eff1accb92aec7"
+local_grafana_dashboard_url = "http://192.168.1.111:3000/public-dashboards/8e29c895422d4bc1a0eff1accb92aec7" # maybe add these to .env file here + env var in dockerfile?
+tailscale_grafana_dashboard_url = "http://100.100.143.61:3000/public-dashboards/8e29c895422d4bc1a0eff1accb92aec7" # maybe do after adding reverse proxy+subdomain naming scheme
 
 layout = html.Div(children=[
     html.H1('Workout Stats'),

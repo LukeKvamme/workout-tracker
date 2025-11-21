@@ -94,9 +94,10 @@ layout = html.Div([
     prevent_initial_call=True
 )
 def log_new_exercise(n_clicks, exercise_name, exercise_musclegroup, exercise_equipment, notes):
-    triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
     if not all([exercise_name, exercise_musclegroup, exercise_equipment]):
         return "Please fill in all required fields."
+    
+    triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
     
     if triggered_id == 'exercise-button':
         return new_exercise(name=exercise_name, description=notes, muscle_group=exercise_musclegroup, equipment=exercise_equipment)

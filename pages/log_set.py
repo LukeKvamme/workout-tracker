@@ -20,7 +20,7 @@ def update_on_page_load():
         for all the exercises, and then returning the layout.
         as a function.
     """
-    establish_mysqlDB_connection()
+    establish_mysqlDB_connection() # refresh connection
 
     # get exercises for dropdown. Dash needs {'label': 'abc', 'value': 'xyz'} formatting for dropdowns
     exercise_options = execute_query("""SELECT * FROM `exercises`""")
@@ -115,9 +115,10 @@ layout = update_on_page_load
     prevent_initial_call=True
 )
 def log_workout_set(n_clicks, exercise_id, weight, reps):
-    triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
     if not all([exercise_id, weight, reps]):
         return "Please fill in all required fields"
+    
+    triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
     
     if triggered_id == 'submit-button':
         try:
