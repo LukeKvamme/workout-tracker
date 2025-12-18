@@ -80,7 +80,8 @@ def update_on_page_load():
                 'marginBottom': '15px',
                 'padding': '8px',
                 'fontSize': '16px'
-                }
+                },
+            n_submit=0
         ),
         
         html.Button('Log Set', 
@@ -97,7 +98,18 @@ def update_on_page_load():
                     },
                     n_clicks=0)
         ]),
-        html.Div(id='set-output-message')
+        dcc.Store(id='logged-sets-store'),
+        html.Div(id='set-output-message'),
+        html.Div(id='logged-sets-div', 
+                 style={
+                        'marginTop': '30px',
+                        'padding': '10px',
+                        'border': '1px solid #ddd',
+                        'border-radius': '5px',
+                        'box-shadow': '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        'backgroundColor': '#f9f9f9',
+                        'font-family': 'Arial, sans-serif'
+                     })
     ])
 
     return layout
@@ -105,22 +117,34 @@ def update_on_page_load():
 layout = update_on_page_load
 
 
+
+
+
+
+
+
+
+
+
 @callback(
-    Output('set-output-message', 'children'),
-    Input('submit-button', 'n_clicks'),
+    [Output('set-output-message', 'value'),
+     Output('logged-sets-store', 'data'),
+     Output('weight-input', 'value'),
+     Output('reps-input', 'value')],
+    [Input('submit-button', 'n_clicks'),
+     Input('reps-input', 'n_submit')],
     State('exercise-dropdown', 'value'),
     State('weight-input', 'value'),
     State('reps-input', 'value'),
-    # State('set-number-input', 'value'),
     prevent_initial_call=True
 )
-def log_workout_set(n_clicks, exercise_id, weight, reps):
+def log_workout_set(n_clicks, n_submit, exercise_id, weight, reps):
     if not all([exercise_id, weight, reps]):
         return "Please fill in all required fields"
     
     triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
     
-    if triggered_id == 'submit-button':
+    if triggered_id == 'submit-button' or 'reps-input':
         try:
             workout_id_tup = execute_query(f"""SELECT id, date FROM `workouts` ORDER BY date DESC LIMIT 1""")
             today = date.today()
@@ -143,24 +167,69 @@ def log_workout_set(n_clicks, exercise_id, weight, reps):
             # now that we have  determined the workout_id and set_number --> actually log this new workout set
             new_set(workout_id=workout_id, exercise_id=exercise_id, weight=weight, reps=reps, set_number=set_number)
             
-
-            # OK, next is to formulate the Div elements for below the set-logging form. Will need the exercise names, set #'s, weight, reps
-            total_sets_tuple = execute_query(f"""SELECT e.name, s.set_number, s.weight, s.reps FROM sets s INNER JOIN exercises e ON s.exercise_id = e.id AND s.workout_id = {workout_id}""")
-            sets_div_elements = []
-
-            for index, value in enumerate(total_sets_tuple[::-1]):
-                sets_div_elements.append(
-                    html.Div(
-                        children=[
-                            html.Br(),
-                            html.H3(f"#{index}\t{value['name']}"),
-                            html.P(f"\tSet #{value['set_number']} - {value['weight']}x{value['reps']} for a total of {int(value['weight']) * int(value['reps'])} lbs.")
-                        ]
-                    )
-                )
+            set_PK_dict = {
+                "workout_id": workout_id,
+                "exercise_id": exercise_id,
+                "set_number": set_number
+            }
             
-            return sets_div_elements
+            return f"Successfully logged set #{set_number} for exercise ID {exercise_id}: {weight} lbs x {reps} reps.", set_PK_dict, None, None
         except Exception as e:
             return f"Error in the callback function when logging a new set: {str(e)}"
 
     return "How did we get here? << Check log set callback"
+
+@callback(
+    Output('logged-sets-div', 'children'),
+    # State('workout-id-store', 'data'),
+    Input('logged-sets-store', 'data'),
+    prevent_initial_call=True # I think you could remove this part, then move all the workout_id logic to this callback and then have all prev sets load on page load (rn they all only load after logging a set)
+)
+def display_sets(set_PK_dict):
+    if set_PK_dict is None:
+        return "No sets logged yet today."
+    workout_id = set_PK_dict['workout_id']
+    exercise_id = set_PK_dict['exercise_id']
+    set_number = set_PK_dict['set_number']
+
+    # OK, next is to formulate the Div elements for below the set-logging form. Will need the exercise names, set #'s, weight, reps
+    total_sets_tuple = execute_query(f"""SELECT e.name, e.equipment, s.set_number, s.weight, s.reps FROM sets s INNER JOIN exercises e ON s.exercise_id = e.id AND s.workout_id = {workout_id} ORDER BY e.name, s.set_number ASC""")
+    sets_div_elements = []
+
+    for index, value in enumerate(total_sets_tuple):
+        sets_div_elements.append(
+            html.Div(
+                children=[
+                    html.Br(),
+                    html.H3(f"\t{value['equipment']} {value['name']}"),
+                    html.P(f"\tSet #{value['set_number']} - {value['weight']}x{value['reps']}"),
+                    html.P(f">>> {int(value['weight']) * int(value['reps'])} lbs.")
+                ],
+                style={
+                    'padding': '10px',
+                    'marginBottom': '10px',
+                    'border': '1px solid #ccc',
+                    'borderRadius': '5px',
+                    'backgroundColor': '#fff',
+                    'boxShadow': '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }
+            )
+        )
+
+    # set_tuple = execute_query(f"""SELECT e.name, s.set_number, s.weight, s.reps FROM sets s INNER JOIN exercises e ON s.exercise_id = e.id WHERE s.workout_id = {workout_id} AND s.exercise_id = {exercise_id} ORDER BY s.set_number ASC""")
+    # sets_div_elements = []
+
+    # for index, value in enumerate(set_tuple):
+    #     sets_div_elements.append(
+    #         html.Div(
+    #             children=[
+    #                 html.Br(),
+    #                 html.H3(f"{value['name']}"),
+    #                 html.P(f"\tSet #{value['set_number']} - {value['weight']}x{value['reps']}"),
+    #                 html.P(f">>> {int(value['weight']) * int(value['reps'])} lbs.")
+    #             ]
+    #         )
+    #     )
+
+    return sets_div_elements
+            
