@@ -57,10 +57,10 @@ def init_db():
 
     new_exercise(name="Bench Press", description="The Classic Bench Press", muscle_group="Chest", equipment="Barbell")
     new_exercise(name="Lat Pulldown", description="The Classic Lat Pulldown", muscle_group="Back", equipment="Cable")
-    new_exercise(name="Bicep Curl", description="The Classic Bicep Curl", muscle_group="Biceps", equipment="Dumbbell")
+    new_exercise(name="Curls", description="The Classic Bicep Curl", muscle_group="Biceps", equipment="Dumbbell")
     new_exercise(name="Tricep Pulldown", description="The Classic Tricep Pulldown", muscle_group="Triceps", equipment="Cable")
     new_exercise(name="Leg Press", description="The Classic Leg Press", muscle_group="Legs", equipment="Machine")
-    new_exercise(name="Military Press", description="The Classic Military Press", muscle_group="Shoulders", equipment="Smith Machine")
+    new_exercise(name="Military Press", description="The Classic Military Press", muscle_group="Shoulders", equipment="Smith-Machine")
     new_exercise(name="Crunch", description="The Classic Ab Crunch", muscle_group="Abdominals", equipment="Bodyweight")
 
 
